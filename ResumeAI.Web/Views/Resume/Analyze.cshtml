@@ -1,0 +1,105 @@
+﻿@model ResumeAI.Web.Models.AnalysisViewModel
+@{
+    ViewData["Title"] = "Analysis Result";
+}
+
+<div class="d-flex align-items-center mb-4">
+    <a asp-controller="Resume" asp-action="Index" class="btn btn-outline-secondary btn-sm me-3">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+    <h4 class="fw-bold mb-0">Resume Analysis Result</h4>
+</div>
+
+<!-- Score Cards -->
+<div class="row g-3 mb-4">
+    @foreach (var (label, score, color) in new[] {
+        ("Overall Score", Model.OverallScore, "primary"),
+        ("Skill Score", Model.SkillScore, "success"),
+        ("Experience Score", Model.ExperienceScore, "warning"),
+        ("Format Score", Model.FormatScore, "info")
+        })
+    {
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body py-4">
+                    <div class="score-circle bg-@color bg-opacity-10 text-@color mx-auto mb-2">
+                        @score
+                    </div>
+                    <div class="fw-semibold text-muted small">@label</div>
+                    <div class="progress mt-2" style="height: 6px;">
+                        <div class="progress-bar bg-@color" style="width: @score%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Chart + Summary -->
+<div class="row g-3 mb-4">
+    <div class="col-md-5">
+        <div class="card h-100">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3">Score Breakdown</h6>
+                <canvas id="radarChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-7">
+        <div class="card h-100">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3"><i class="bi bi-robot text-primary"></i> AI Summary</h6>
+                <p class="text-muted">@Model.AISummary</p>
+                <hr />
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6 class="text-success fw-bold"><i class="bi bi-check-circle"></i> Strengths</h6>
+                        <ul class="list-unstyled">
+                            @foreach (var s in Model.Strengths)
+                            {
+                                <li class="mb-1 small"><i class="bi bi-check text-success"></i> @s</li>
+                            }
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-danger fw-bold"><i class="bi bi-x-circle"></i> Weaknesses</h6>
+                        <ul class="list-unstyled">
+                            @foreach (var w in Model.Weaknesses)
+                            {
+                                <li class="mb-1 small"><i class="bi bi-x text-danger"></i> @w</li>
+                            }
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-warning fw-bold"><i class="bi bi-lightbulb"></i> Suggestions</h6>
+                        <ul class="list-unstyled">
+                            @foreach (var s in Model.Suggestions)
+                            {
+                                <li class="mb-1 small"><i class="bi bi-arrow-right text-warning"></i> @s</li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        new Chart(document.getElementById('radarChart'), {
+            type: 'radar',
+            data: {
+                labels: ['Overall', 'Skills', 'Experience', 'Format'],
+                datasets: [{
+                    label: 'Scores',
+                    data: [@Model.OverallScore, @Model.SkillScore, @Model.ExperienceScore, @Model.FormatScore],
+                    backgroundColor: 'rgba(13,110,253,0.2)',
+                    borderColor: '#0d6efd',
+                    pointBackgroundColor: '#0d6efd'
+                }]
+            },
+            options: { scales: { r: { beginAtZero: true, max: 100 } } }
+        });
+    </script>
+}

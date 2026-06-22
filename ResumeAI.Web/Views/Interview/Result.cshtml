@@ -1,0 +1,100 @@
+﻿@model ResumeAI.Web.Models.InterviewResultViewModel
+@{
+    ViewData["Title"] = "Interview Result";
+}
+
+<div class="d-flex align-items-center mb-4">
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm me-3">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+    <div>
+        <h4 class="fw-bold mb-0">Interview Result: @Model.JobTitle</h4>
+        <p class="text-muted mb-0">@Model.Difficulty · @Model.StartedAt.ToString("MMM dd, yyyy")</p>
+    </div>
+</div>
+
+<!-- Total Score -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body py-4">
+                <div class="score-circle mx-auto mb-2
+                    @(Model.TotalScore >= 70 ? "bg-success bg-opacity-10 text-success" :
+                                           Model.TotalScore >= 50 ? "bg-warning bg-opacity-10 text-warning" :
+                                           "bg-danger bg-opacity-10 text-danger")"
+                     style="width: 90px; height: 90px; font-size: 1.6rem;">
+                    @Model.TotalScore
+                </div>
+                <div class="fw-bold">Total Score</div>
+                <div class="text-muted small">out of 100</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card h-100">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3">Score by Question</h6>
+                <canvas id="barChart" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Questions & Answers -->
+<div class="card">
+    <div class="card-header bg-white border-0 pt-3">
+        <h6 class="fw-bold mb-0">Detailed Q&A Review</h6>
+    </div>
+    <div class="card-body">
+        @foreach (var (q, i) in Model.Questions.Select((q, i) => (q, i + 1)))
+        {
+            <div class="mb-4 pb-4 @(i < Model.Questions.Count ? "border-bottom" : "")">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <span class="badge bg-secondary me-2">Q@i</span>
+                        <span class="badge bg-outline-secondary border">@q.QuestionType</span>
+                    </div>
+                    <span class="fw-bold @(q.Score >= 70 ? "text-success" : q.Score >= 50 ? "text-warning" : "text-danger")">
+                        @q.Score / 100
+                    </span>
+                </div>
+                <p class="fw-semibold mb-2">@q.QuestionText</p>
+                <div class="bg-light rounded p-3 mb-2">
+                    <small class="text-muted d-block mb-1"><strong>Your Answer:</strong></small>
+                    <p class="small mb-0">@(q.UserAnswer ?? "Not answered")</p>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(q.AIFeedback))
+                {
+                    <div class="bg-primary bg-opacity-10 rounded p-3">
+                        <small class="text-primary d-block mb-1"><strong><i class="bi bi-robot"></i> AI Feedback:</strong></small>
+                        <p class="small mb-0">@q.AIFeedback</p>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        new Chart(document.getElementById('barChart'), {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Questions.Select(q => $"Q{Model.Questions.IndexOf(q) + 1}").ToList())),
+                datasets: [{
+                    label: 'Score',
+                    data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Questions.Select(q => q.Score).ToList())),
+                    backgroundColor: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                                            Model.Questions.Select(q => q.Score >= 70 ? "rgba(25,135,84,0.7)" :
+                                                                                                  q.Score >= 50 ? "rgba(255,193,7,0.7)" :
+                                                                                                  "rgba(220,53,69,0.7)").ToList()))
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, max: 100 } }
+        }
+    });
+</script>
+}

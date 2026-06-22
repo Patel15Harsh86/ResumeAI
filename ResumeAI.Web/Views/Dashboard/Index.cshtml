@@ -1,0 +1,204 @@
+﻿@model ResumeAI.Web.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">Welcome back, @Model.FullName! 👋</h4>
+        <p class="text-muted mb-0">Here's your career progress overview</p>
+    </div>
+    <a asp-controller="Resume" asp-action="Index" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Upload Resume
+    </a>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                    <i class="bi bi-file-earmark-text text-primary fs-4"></i>
+                </div>
+                <div>
+                    <div class="fs-4 fw-bold">@Model.TotalResumes</div>
+                    <div class="text-muted small">Resumes</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
+                    <i class="bi bi-graph-up text-success fs-4"></i>
+                </div>
+                <div>
+                    <div class="fs-4 fw-bold">@Model.TotalInterviews</div>
+                    <div class="text-muted small">Interviews</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="rounded-circle bg-warning bg-opacity-10 p-3 me-3">
+                    <i class="bi bi-star text-warning fs-4"></i>
+                </div>
+                <div>
+                    <div class="fs-4 fw-bold">@Model.AverageScore</div>
+                    <div class="text-muted small">Avg Score</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="rounded-circle bg-info bg-opacity-10 p-3 me-3">
+                    <i class="bi bi-briefcase text-info fs-4"></i>
+                </div>
+                <div>
+                    <div class="fs-4 fw-bold">@Model.TotalAnalyses</div>
+                    <div class="text-muted small">Analyses</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- Chart -->
+    <div class="col-md-7">
+        <div class="card h-100">
+            <div class="card-header bg-white border-0 pt-3">
+                <h6 class="fw-bold mb-0">Interview Score Trend</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="scoreChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Interviews -->
+    <div class="col-md-5">
+        <div class="card h-100">
+            <div class="card-header bg-white border-0 pt-3 d-flex justify-content-between">
+                <h6 class="fw-bold mb-0">Recent Interviews</h6>
+                <a asp-controller="Interview" asp-action="Index" class="text-primary small">View all</a>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.RecentInterviews.Any())
+                {
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-mic fs-2"></i>
+                        <p class="mt-2">No interviews yet</p>
+                        <a asp-controller="Interview" asp-action="Start" class="btn btn-sm btn-outline-primary">Start Interview</a>
+                    </div>
+                }
+                else
+                {
+                    foreach (var interview in Model.RecentInterviews)
+                    {
+                        <div class="d-flex align-items-center p-3 border-bottom">
+                            <div class="score-circle bg-primary bg-opacity-10 text-primary me-3" style="width:45px;height:45px;font-size:0.9rem;">
+                                @interview.TotalScore
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold small">@interview.JobTitle</div>
+                                <div class="text-muted" style="font-size:0.75rem;">@interview.Difficulty · @interview.StartedAt.ToString("MMM dd")</div>
+                            </div>
+                            <span class="badge @(interview.Status == "Completed" ? "bg-success" : "bg-warning")">
+                                @interview.Status
+                            </span>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Resumes -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-white border-0 pt-3 d-flex justify-content-between">
+                <h6 class="fw-bold mb-0">Recent Resumes</h6>
+                <a asp-controller="Resume" asp-action="Index" class="text-primary small">View all</a>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.RecentResumes.Any())
+                {
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-file-earmark-plus fs-2"></i>
+                        <p class="mt-2">No resumes uploaded yet</p>
+                        <a asp-controller="Resume" asp-action="Index" class="btn btn-sm btn-outline-primary">Upload Resume</a>
+                    </div>
+                }
+                else
+                {
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>File Name</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Uploaded</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var resume in Model.RecentResumes)
+                            {
+                                <tr>
+                                    <td><i class="bi bi-file-earmark-pdf text-danger"></i> @resume.FileName</td>
+                                    <td><span class="badge bg-secondary">@resume.FileType</span></td>
+                                    <td>
+                                        <span class="badge @(resume.Status == "Analyzed" ? "bg-success" : resume.Status == "Parsed" ? "bg-info" : "bg-warning")">
+                                            @resume.Status
+                                        </span>
+                                    </td>
+                                    <td class="text-muted small">@resume.UploadedAt.ToString("MMM dd, yyyy")</td>
+                                    <td>
+                                        <a asp-controller="Resume" asp-action="Analyze" asp-route-id="@resume.Id"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-cpu"></i> Analyze
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const scores = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RecentInterviews.Select(i => i.TotalScore).ToList()));
+        const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RecentInterviews.Select(i => i.JobTitle).ToList()));
+
+        new Chart(document.getElementById('scoreChart'), {
+            type: 'line',
+            data: {
+                labels: labels.length ? labels : ['No data'],
+                datasets: [{
+                    label: 'Interview Score',
+                    data: scores.length ? scores : [0],
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13,110,253,0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, max: 100 } }
+            }
+        });
+    </script>
+}

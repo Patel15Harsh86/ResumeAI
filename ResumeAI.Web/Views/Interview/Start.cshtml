@@ -1,0 +1,53 @@
+﻿@model ResumeAI.Web.Models.StartInterviewViewModel
+@{
+    ViewData["Title"] = "Start Interview";
+}
+
+<div class="d-flex align-items-center mb-4">
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm me-3">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+    <h4 class="fw-bold mb-0">Start Mock Interview</h4>
+</div>
+
+<div class="card" style="max-width: 600px;">
+    <div class="card-body p-4">
+        <form asp-action="Start" method="post">
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Select Resume</label>
+                <select asp-for="SelectedResumeId" class="form-select">
+                    @foreach (var resume in Model.Resumes)
+                    {
+                        <option value="@resume.Id">@resume.FileName</option>
+                    }
+                </select>
+                @if (!Model.Resumes.Any())
+                {
+                    <div class="alert alert-warning mt-2">
+                        No resumes found. <a asp-controller="Resume" asp-action="Index">Upload a resume first.</a>
+                    </div>
+                }
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Job Title</label>
+                <input asp-for="JobTitle" class="form-control" placeholder=".NET Developer" />
+            </div>
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Difficulty</label>
+                <select asp-for="Difficulty" class="form-select">
+                    <option value="Easy">Easy</option>
+                    <option value="Medium" selected>Medium</option>
+                    <option value="Hard">Hard</option>
+                </select>
+            </div>
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                AI will generate <strong>5 questions</strong> based on your resume and job title.
+                Answer each question to get personalized feedback and a score.
+            </div>
+            <button type="submit" class="btn btn-primary w-100 py-2" @(!Model.Resumes.Any() ? "disabled" : "")>
+                <i class="bi bi-play-circle"></i> Generate Questions & Start
+            </button>
+        </form>
+    </div>
+</div>

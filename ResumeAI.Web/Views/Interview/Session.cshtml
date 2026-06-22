@@ -1,0 +1,98 @@
+﻿@model ResumeAI.Web.Models.InterviewResultViewModel
+@{
+    ViewData["Title"] = "Interview Session";
+}
+
+<div class="d-flex align-items-center mb-4">
+    <h4 class="fw-bold mb-0">
+        <i class="bi bi-mic text-primary"></i> @Model.JobTitle Interview
+        <span class="badge @(Model.Difficulty == "Hard" ? "bg-danger" : Model.Difficulty == "Medium" ? "bg-warning" : "bg-success") ms-2">
+            @Model.Difficulty
+        </span>
+    </h4>
+</div>
+
+@{
+    var unanswered = Model.Questions.Where(q => string.IsNullOrWhiteSpace(q.UserAnswer)).ToList();
+    var currentQuestion = unanswered.FirstOrDefault();
+    var answeredCount = Model.Questions.Count(q => !string.IsNullOrWhiteSpace(q.UserAnswer));
+}
+
+<!-- Progress -->
+<div class="card mb-4">
+    <div class="card-body py-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="small text-muted">Progress: @answeredCount / @Model.Questions.Count questions answered</span>
+            <span class="small fw-bold text-primary">@Math.Round((decimal)answeredCount / Model.Questions.Count * 100)%</span>
+        </div>
+        <div class="progress" style="height: 8px;">
+            <div class="progress-bar bg-primary" style="width: @(answeredCount * 100 / Model.Questions.Count)%"></div>
+        </div>
+    </div>
+</div>
+
+@if (Model.Status == "Completed")
+{
+    <div class="alert alert-success text-center">
+        <i class="bi bi-check-circle-fill fs-4"></i>
+        <h5 class="mt-2">Interview Completed!</h5>
+        <p>Your total score: <strong>@Model.TotalScore / 100</strong></p>
+        <a asp-action="Result" asp-route-id="@Model.SessionId" class="btn btn-success">
+            View Full Result
+        </a>
+    </div>
+}
+else if (currentQuestion != null)
+{
+    <!-- Current Question -->
+    <div class="card mb-4 border-primary">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between">
+                <span><i class="bi bi-question-circle"></i> Question @(answeredCount + 1) of @Model.Questions.Count</span>
+                <span class="badge bg-white text-primary">@currentQuestion.QuestionType</span>
+            </div>
+        </div>
+        <div class="card-body p-4">
+            <p class="fs-6 fw-semibold mb-4">@currentQuestion.QuestionText</p>
+            <form asp-action="SubmitAnswer" method="post">
+                <input type="hidden" name="sessionId" value="@Model.SessionId" />
+                <input type="hidden" name="questionId" value="@currentQuestion.Id" />
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Your Answer</label>
+                    <textarea name="answer" class="form-control" rows="5"
+                          placeholder="Type your answer here..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-send"></i> Submit Answer
+                </button>
+            </form>
+        </div>
+    </div>
+}
+
+<!-- Answered Questions -->
+@if (answeredCount > 0)
+{
+    <h6 class="fw-bold mb-3 text-muted">Answered Questions</h6>
+    @foreach (var q in Model.Questions.Where(q => !string.IsNullOrWhiteSpace(q.UserAnswer)))
+    {
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="badge bg-secondary">@q.QuestionType</span>
+                    <span class="fw-bold text-primary">Score: @q.Score/100</span>
+                </div>
+                <p class="fw-semibold small mb-2">@q.QuestionText</p>
+                <div class="bg-light rounded p-2 mb-2">
+                    <p class="small text-muted mb-0"><strong>Your answer:</strong> @q.UserAnswer</p>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(q.AIFeedback))
+                {
+                    <div class="bg-primary bg-opacity-10 rounded p-2">
+                        <p class="small mb-0"><strong><i class="bi bi-robot"></i> AI Feedback:</strong> @q.AIFeedback</p>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+}

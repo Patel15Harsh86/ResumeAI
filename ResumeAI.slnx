@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="ResumeAI.API/ResumeAI.API.csproj" />
+  <Project Path="ResumeAI.Core/ResumeAI.Core.csproj" />
+  <Project Path="ResumeAI.Infrastructure/ResumeAI.Infrastructure.csproj" />
+  <Project Path="ResumeAI.Services/ResumeAI.Services.csproj" />
+  <Project Path="ResumeAI.Web/ResumeAI.Web.csproj" />
+</Solution>

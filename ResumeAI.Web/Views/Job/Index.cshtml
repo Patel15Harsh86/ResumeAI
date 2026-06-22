@@ -1,0 +1,95 @@
+﻿@model List<ResumeAI.Web.Models.JobViewModel>
+@{
+    ViewData["Title"] = "Job Matching";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">Job Descriptions</h4>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Add Job Description
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card">
+        <div class="card-body text-center py-5 text-muted">
+            <i class="bi bi-briefcase fs-1"></i>
+            <p class="mt-3">No job descriptions yet. Add one to start matching!</p>
+            <a asp-action="Create" class="btn btn-outline-primary">Add Job Description</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var job in Model)
+        {
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h6 class="fw-bold mb-0">@job.Title</h6>
+                                <p class="text-muted small mb-0"><i class="bi bi-building"></i> @job.Company</p>
+                            </div>
+                            <a asp-action="Delete" asp-route-id="@job.Id" class="btn btn-sm btn-outline-danger"
+                               onclick="return confirm('Delete this job?')">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                        <p class="text-muted small mt-2">@(job.Description.Length > 100 ? job.Description[..100] + "..." : job.Description)</p>
+                        <div class="mb-3">
+                            @foreach (var skill in job.RequiredSkills.Take(5))
+                            {
+                                <span class="badge bg-primary bg-opacity-10 text-primary badge-skill me-1 mb-1">@skill</span>
+                            }
+                        </div>
+                        <button class="btn btn-outline-primary btn-sm w-100" data-bs-toggle="modal"
+                                data-bs-target="#matchModal" data-job-id="@job.Id" data-job-title="@job.Title">
+                            <i class="bi bi-arrows-collapse"></i> Match with Resume
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- Match Modal -->
+<div class="modal fade" id="matchModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Match Resume to Job</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="Match" method="get">
+                <div class="modal-body">
+                    <input type="hidden" name="jobId" id="modalJobId" />
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Select Resume</label>
+                        <select name="resumeId" class="form-select">
+                            @foreach (var resume in (List<ResumeAI.Web.Models.ResumeViewModel>)ViewBag.Resumes)
+                            {
+                                <option value="@resume.Id">@resume.FileName</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Match Now</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('matchModal').addEventListener('show.bs.modal', function (e) {
+            document.getElementById('modalJobId').value = e.relatedTarget.dataset.jobId;
+        });
+    </script>
+}

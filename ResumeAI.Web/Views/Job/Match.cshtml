@@ -1,0 +1,94 @@
+﻿@model ResumeAI.Web.Models.JobMatchViewModel
+@{
+    ViewData["Title"] = "Job Match Result";
+}
+
+<div class="d-flex align-items-center mb-4">
+    <a asp-controller="Job" asp-action="Index" class="btn btn-outline-secondary btn-sm me-3">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+    <div>
+        <h4 class="fw-bold mb-0">Match Result: @Model.JobTitle</h4>
+        <p class="text-muted mb-0">@Model.Company</p>
+    </div>
+</div>
+
+<!-- Scores -->
+<div class="row g-3 mb-4">
+    @foreach (var (label, score, color) in new[] {
+        ("Overall Match", Model.OverallScore, "primary"),
+        ("Skill Match", Model.SkillScore, "success"),
+        ("Experience", Model.ExperienceScore, "warning"),
+        ("Format", Model.FormatScore, "info")
+        })
+    {
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body py-4">
+                    <div class="score-circle bg-@color bg-opacity-10 text-@color mx-auto mb-2">@score</div>
+                    <div class="fw-semibold text-muted small">@label</div>
+                    <div class="progress mt-2" style="height: 6px;">
+                        <div class="progress-bar bg-@color" style="width: @score%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="row g-3">
+    <!-- Skill Matches -->
+    <div class="col-md-5">
+        <div class="card h-100">
+            <div class="card-header bg-white border-0 pt-3">
+                <h6 class="fw-bold mb-0">Skill Match Breakdown</h6>
+            </div>
+            <div class="card-body">
+                @foreach (var skill in Model.SkillMatches)
+                {
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-@(skill.IsMatched ? "check-circle-fill text-success" : "x-circle-fill text-danger") me-2"></i>
+                        <span class="flex-grow-1 small">@skill.SkillName</span>
+                        <span class="badge @(skill.IsMatched ? "bg-success" : "bg-danger") bg-opacity-10 @(skill.IsMatched ? "text-success" : "text-danger")">
+                            @skill.MatchScore%
+                        </span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Feedback -->
+    <div class="col-md-7">
+        <div class="card h-100">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3"><i class="bi bi-robot text-primary"></i> AI Assessment</h6>
+                <p class="text-muted">@Model.AISummary</p>
+                <hr />
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6 class="text-success small fw-bold">✅ Strengths</h6>
+                        @foreach (var s in Model.Strengths)
+                        {
+                            <p class="small mb-1 text-muted">@s</p>
+                        }
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-danger small fw-bold">❌ Weaknesses</h6>
+                        @foreach (var w in Model.Weaknesses)
+                        {
+                            <p class="small mb-1 text-muted">@w</p>
+                        }
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-warning small fw-bold">💡 Suggestions</h6>
+                        @foreach (var s in Model.Suggestions)
+                        {
+                            <p class="small mb-1 text-muted">@s</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
